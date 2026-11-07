@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>P2P PAC-MAN · Rune Rooms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="crt">
+  <main id="app">
+
+    <!-- TITLE -->
+    <section id="screen-title" class="screen active">
+      <h1 class="logo"><span class="l1">P2P</span><span class="l2">PAC-MAN</span></h1>
+      <canvas id="titleCanvas" width="560" height="64"></canvas>
+      <p class="tag">TWO PAC-MEN. ONE MAZE. NO GHOSTS.<br>ONLY EACH OTHER.</p>
+      <div class="menu">
+        <button class="btn" id="btnCreate">CREATE ROOM</button>
+        <button class="btn" id="btnJoin">JOIN ROOM</button>
+        <button class="btn alt" id="btnPractice">PRACTICE VS BOT</button>
+        <button class="btn ghost" id="btnHelp">HOW TO PLAY</button>
+      </div>
+      <p class="foot">PEER-TO-PEER · ROOMS ARE 4 RUNES · ᚠᚢᚦᚨᚱᚲ</p>
+    </section>
+
+    <!-- HOST: waiting -->
+    <section id="screen-host" class="screen">
+      <h2>YOUR ROOM</h2>
+      <p class="sub">SHARE THESE RUNES WITH YOUR RIVAL</p>
+      <div class="slots big" id="hostCode"></div>
+      <p class="blink" id="hostStatus">OPENING PORTAL...</p>
+      <div class="share">
+        <input id="shareLink" readonly aria-label="Invite link">
+        <button class="btn small" id="btnCopyLink">COPY LINK</button>
+      </div>
+      <button class="btn small ghost" id="btnCopyCode">COPY CODE AS LETTERS</button>
+      <button class="btn ghost" data-back>BACK</button>
+    </section>
+
+    <!-- JOIN: rune keypad -->
+    <section id="screen-join" class="screen">
+      <h2>JOIN ROOM</h2>
+      <p class="sub">ENTER THE 4 RUNES (OR TYPE THE LETTERS)</p>
+      <div class="slots" id="joinSlots"></div>
+      <div class="keypad" id="keypad"></div>
+      <div class="row">
+        <button class="btn small ghost" id="btnDel">⌫ DEL</button>
+        <button class="btn small" id="btnGo" disabled>ENTER ROOM</button>
+      </div>
+      <button class="btn ghost" data-back>BACK</button>
+    </section>
+
+    <!-- CONNECTING -->
+    <section id="screen-connecting" class="screen">
+      <h2 class="blink">CONNECTING...</h2>
+      <p class="sub" id="connText">KNOCKING ON THE RUNE DOOR</p>
+      <button class="btn ghost" data-back>CANCEL</button>
+    </section>
+
+    <!-- HELP -->
+    <section id="screen-help" class="screen">
+      <h2>HOW TO PLAY</h2>
+      <ul class="rules">
+        <li><b class="y">STEER</b> WITH ARROWS / WASD (OR SWIPE / D-PAD ON TOUCH).</li>
+        <li><b class="y">EAT DOTS</b> FOR POINTS. THEY DON'T BITE BACK.</li>
+        <li><b class="y">POWER PELLETS</b> (THE BIG BLINKING ONES) MAKE YOU THE HUNTER FOR 9 SECONDS. YOUR RIVAL TURNS BLUE AND SCARED.</li>
+        <li><b class="y">TOUCH A BLUE RIVAL</b> TO CHOMP THEM. FIRST TO <b class="y">3 CATCHES</b> WINS.</li>
+        <li><b class="y">STEAL THE POWER:</b> A SCARED PAC-MAN CAN GRAB ANOTHER PELLET AND FLIP THE HUNT. IF BOTH ARE POWERED, YOU SLIP PAST EACH OTHER.</li>
+        <li><b class="y">PELLETS GROW BACK</b> AFTER ~11 SECONDS. THE TUNNELS WRAP AROUND.</li>
+        <li><b class="y">ROOMS:</b> ONE PLAYER CREATES A ROOM AND SHARES THE 4 RUNES (OR THE LINK). THE HOST'S BROWSER RUNS THE GAME - KEEP THAT TAB VISIBLE.</li>
+        <li><b class="y">M</b> MUTES SOUND.</li>
+      </ul>
+      <button class="btn" data-back>GOT IT</button>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen">
+      <div id="hud">
+        <div class="hp" id="hp0">
+          <div class="hl"><span class="who">1UP</span><span class="you">YOU</span></div>
+          <div class="hs" id="sc0">00</div>
+          <div class="pips" id="pips0"><i></i><i></i><i></i></div>
+          <div class="pbar"><b id="pb0"></b></div>
+        </div>
+        <div id="hmid">
+          <div class="hlabel" id="hlabel">ROOM</div>
+          <div class="runes" id="hroom"></div>
+          <div id="hping"></div>
+        </div>
+        <div class="hp right" id="hp1">
+          <div class="hl"><span class="who">2UP</span><span class="you">YOU</span></div>
+          <div class="hs" id="sc1">00</div>
+          <div class="pips" id="pips1"><i></i><i></i><i></i></div>
+          <div class="pbar"><b id="pb1"></b></div>
+        </div>
+      </div>
+      <div id="boardWrap">
+        <canvas id="board" aria-label="Pac-Man maze"></canvas>
+        <div id="overlay" hidden>
+          <div class="panel">
+            <h2 id="ovTitle">YOU WIN!</h2>
+            <p id="ovSub"></p>
+            <p class="blink" id="ovWait"></p>
+            <div class="row">
+              <button class="btn" id="btnRematch">REMATCH</button>
+              <button class="btn ghost" id="btnLeave">MENU</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="dpad" aria-hidden="true">
+        <button data-d="0,-1">▲</button>
+        <button data-d="-1,0">◀</button>
+        <button data-d="1,0">▶</button>
+        <button data-d="0,1">▼</button>
+      </div>
+      <div id="gameFoot">
+        <button class="btn tiny ghost" id="btnMute">SOUND ON</button>
+        <span class="hint">ARROWS / WASD</span>
+        <button class="btn tiny ghost" id="btnQuit">✕ LEAVE</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="js/maze.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/render.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
